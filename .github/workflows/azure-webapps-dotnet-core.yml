@@ -1,0 +1,44 @@
+name: Deploy to Azure Web Apps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build and Publish Web App
+      run: |
+        dotnet publish src/Web/Web.csproj -c Release -o WebApp
+
+    - name: Deploy Web App 1 (East US)
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: "eShopWeb-eastUS"
+        package: ./src/Web
+
+    - name: Deploy Web App 2 (West Europe)
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: "eShopWeb-westEU"
+        package: ./src/Web
+
+    - name: Build and Publish Public API
+      run: |
+        dotnet publish src/PublicApi/PublicApi.csproj -c Release -o PublicApi
+
+    - name: Deploy Public API
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: "eShopPublicApi"
+        package: ./src/PublicApi
